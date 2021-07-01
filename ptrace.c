@@ -17,14 +17,8 @@ int main(int argc, char *argv[])
 {
 	pid_t child;
 	long orig_rax, rax;
-	int status, i, j;
-	int insyscall = 0;
+	int status, result, option;
 	struct user_regs_struct regs;
-	char path[20];
-	char file[25];
-	char rpath[100];
-	DIR *dp;
-	struct dirent *dir;
 
 	child = fork();
 	if (child == 0){
@@ -34,7 +28,22 @@ int main(int argc, char *argv[])
 		execl("/usr/bin/firefox", "firefox", NULL);
 		//execl("./test", "test", NULL);
 	} else {
-		while(1){
+		ptrace(PTRACE_SYSCALL, child, 0, 0);
+
+		while (waitpid(child, &status, 0) != -1) {
+			option = ptrace(PTRACE_SETOPTIONS, child, 0,
+					PTRACE_O_TRACEMMAP);
+			if (option != 0) 
+				printf("setoptions error\n");
+			result = ptrace(PTRACE_GETREGS, child, 0, &regs);
+
+			if (regs.rax != -1) {
+				printf("syscall: %3lld\n", regs.orig_rax);
+			}
+			ptrace(PTRACE_SYSCALL, child, 0, 0);
+		}
+
+		/*while(1){
 			wait(&status);
 			if(WIFEXITED(status))
 				break;
@@ -45,10 +54,12 @@ int main(int argc, char *argv[])
 				printf("setoptions error\n");
 			ptrace(PTRACE_GETREGS, child, NULL, &regs);
 			orig_rax = ptrace(PTRACE_PEEKUSER, child, 8*ORIG_RAX, NULL);
-
-			printf("syscall activate %ld\n", orig_rax);
-			ptrace(PTRACE_SYSCALL, child, NULL, NULL);	
-		}
+			
+			if (orig_rax != -1) {
+				printf("syscall activate %ld\n", orig_rax);
+			}
+			ptrace(PTRACE_SYSCALL, child, NULL, NULL);
+		}*/
 	}
 
 	printf("End Ptrace\n");

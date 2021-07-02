@@ -42,24 +42,6 @@ int main(int argc, char *argv[])
 			}
 			ptrace(PTRACE_SYSCALL, child, 0, 0);
 		}
-
-		/*while(1){
-			wait(&status);
-			if(WIFEXITED(status))
-				break;
-
-			int r = ptrace(PTRACE_SETOPTIONS, child, 0,
-					PTRACE_O_TRACEMMAP);
-			if (r != 0)
-				printf("setoptions error\n");
-			ptrace(PTRACE_GETREGS, child, NULL, &regs);
-			orig_rax = ptrace(PTRACE_PEEKUSER, child, 8*ORIG_RAX, NULL);
-			
-			if (orig_rax != -1) {
-				printf("syscall activate %ld\n", orig_rax);
-			}
-			ptrace(PTRACE_SYSCALL, child, NULL, NULL);
-		}*/
 	}
 
 	printf("End Ptrace\n");
